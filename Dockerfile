@@ -13,13 +13,28 @@ RUN wget -q https://github.com/SagerNet/sing-box/releases/download/v1.10.1/sing-
 COPY config.json.tmpl .
 
 RUN printf '#!/bin/sh\n\
+set -eu\n\
 UUID=$(cat /proc/sys/kernel/random/uuid)\n\
-KEYPAIR=$(./sing-box generate reality-keypair)\n\
-PRIVATE_KEY=$(echo "$KEYPAIR" | grep PrivateKey | cut -d: -f2 | xargs)\n\
-PUBLIC_KEY=$(echo "$KEYPAIR" | grep PublicKey | cut -d: -f2 | xargs)\n\
+# 生成密钥对并清理 ANSI 颜色（关键！）\n\
+KEYPAIR=$(./sing-box generate reality-keypair 2>/dev/null | sed "s/\x1b\\[[0-9;]*m//g")\n\
+# 安全提取：按行匹配，避免 grep 失败\n\
+PRIVATE_KEY=$(echo "$KEYPAIR" | awk -F": " \'/PrivateKey/ {print $2; exit}\')\n\
+PUBLIC_KEY=$(echo "$KEYPAIR" | awk -F": " \'/PublicKey/ {print $2; exit}\')\n\
 SHORT_ID=$(openssl rand -hex 8)\n\
 \n\
+# 调试：强制输出密钥（确保非空）\n\
+echo "🔍 UUID: $UUID" >&2\n\
+echo "🔍 Public Key: $PUBLIC_KEY" >&2\n\
+echo "🔍 Short ID: $SHORT_ID" >&2\n\
+\n\
+# 替换模板\n\
 sed "s/\${UUID}/$UUID/g; s/\${PRIVATE_KEY}/$PRIVATE_KEY/g; s/\${SHORT_ID}/$SHORT_ID/g" config.json.tmpl > config.json\n\
+\n\
+# 验证 config.json 是否含有效私钥\n\
+if ! grep -q "private_key.*[A-Za-z0-9+/=]" config.json; then\n\
+  echo "❌ ERROR: config.json has empty private_key!" >&2\n\
+  exit 1\n\
+fi\n\
 \n\
 echo "================================"\n\
 echo "✅ Ready: Reality on 1443"\n\
