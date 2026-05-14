@@ -1,5 +1,5 @@
 FROM alpine:latest
-RUN apk add --no-cache wget tar gettext bash
+RUN apk add --no-cache wget tar bash grep sed
 
 WORKDIR /app
 
@@ -17,12 +17,12 @@ RUN echo '{ \
     "tag": "vless-in", \
     "listen": "::", \
     "listen_port": 443, \
-    "users": [{ "uuid": "${UUID}" }], \
+    "users": [{ "uuid": "PLACEHOLDER_UUID" }], \
     "transport": { "type": "ws", "path": "/chat" } \
   }], \
   "outbounds": [{ "type": "direct", "tag": "direct" }] \
-}' > config.json.template
+}' > config.json
 
 EXPOSE 443
-# 启动时生成最终的配置文件并运行
-CMD ["sh", "-c", "export UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)} && echo \"Using UUID: $UUID\" && envsubst < config.json.template > config.json && ./sing-box run -c config.json"]
+# 启动时替换占位符并运行
+CMD ["sh", "-c", "UUID=${UUID:-$(cat /proc/sys/kernel/random/uuid)} && echo \"Using UUID: $UUID\" && sed -i \"s/PLACEHOLDER_UUID/$UUID/g\" config.json && ./sing-box run -c config.json"]
