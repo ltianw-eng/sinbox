@@ -2,23 +2,19 @@
   "log": { "level": "info" },
   "inbounds": [{
     "type": "vless",
-    "tag": "reality-in",
     "listen": "0.0.0.0",
     "listen_port": 1443,
-    "users": [{ "uuid": "${UUID}", "flow": "" }],
+    "users": [{
+      "uuid": "${UUID}",
+      "flow": "xtls-rprx-vision"
+    }],
     "tls": {
       "enabled": true,
-      "server_name": "sinbox-production.up.railway.app",   // ← 关键！必须和客户端 SNI 一致
       "reality": {
         "enabled": true,
-        "handshake": {
-          "server": "sinbox-production.up.railway.app",
-          "server_port": 443
-        },
         "private_key": "${PRIVATE_KEY}",
-        "short_id": ["${SHORT_ID}"]
+        "short_id": "${SHORT_ID}"
       }
     }
-  }],
-  "outbounds": [{ "type": "direct", "tag": "direct" }]
+  }]
 }
