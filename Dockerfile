@@ -1,5 +1,5 @@
 FROM alpine:latest
-RUN apk add --no-cache wget tar
+RUN apk add --no-cache wget tar gettext curl
 WORKDIR /app
 # 下载 sing-box 官方程序
 RUN wget https://github.com/SagerNet/sing-box/releases/download/v1.10.1/sing-box-1.10.1-linux-amd64.tar.gz && \
