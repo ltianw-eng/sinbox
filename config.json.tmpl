@@ -5,29 +5,28 @@
   "inbounds": [
     {
       "type": "vless",
-      "tag": "vless-reality",
-      "listen": "::",
-      "listen_port": 1443,
+      "tag": "reality-in",
+      "listen": "0.0.0.0",
+      "listen_port": ${LISTEN_PORT},
       "users": [
         {
           "uuid": "${UUID}",
-          "flow": "xtls-rprx-vision"
+          "flow": ""
         }
       ],
       "tls": {
         "enabled": true,
-        "server_name": "${DOMAIN}",
+        "server_name": "${SERVER_NAME}",        // ← 关键：必须配置此项
         "reality": {
           "enabled": true,
           "handshake": {
-            "server": "${DOMAIN}",
-            "server_port": 1443
+            "server": "${HANDSHAKE_SERVER}",
+            "server_port": ${HANDSHAKE_PORT}
           },
           "private_key": "${PRIVATE_KEY}",
           "short_id": ["${SHORT_ID}"]
         }
       }
-      // ⚠️ 关键：不要写 "transport" 字段！默认即为 raw TCP
     }
   ],
   "outbounds": [
