@@ -1,32 +1,7 @@
-#FROM alpine:latest
-#RUN apk add --no-cache wget tar gettext curl
-#WORKDIR /app
-# 下载 sing-box 官方程序
-#RUN wget https://github.com/SagerNet/sing-box/releases/download/v1.10.1/sing-box-1.10.1-linux-amd64.tar.gz && \
-#    tar -zxvf sing-box-1.10.1-linux-amd64.tar.gz && \
-#    mv sing-box-1.10.1-linux-amd64/sing-box . && \
-#    rm -rf sing-box-1.10.1-linux-amd64*
-#COPY config.json.tmpl .
-
-#RUN printf '#!/bin/sh\n\
-#UUID=$(cat /proc/sys/kernel/random/uuid)\n\
-#sed "s/\${UUID}/$UUID/g" config.json.tmpl > config.json\n\
-#echo "================================"\n\
-#echo "VLESS Configuration:"\n\
-#echo "Server: $(curl -s ifconfig.me 2>/dev/null || echo \"YOUR_SERVER_IP\")"\n\
-#echo "Port: $PORT"\n\
-#echo "UUID: $UUID"\n\
-#echo "Client Link:"\n\
-#echo "vless://$UUID@$(curl -s ifconfig.me 2>/dev/null):$PORT?path=/chat&security=none&type=ws#VLESS_WS"\n\
-#echo "================================"\n\
-#exec ./sing-box run -c config.json' > /app/start.sh && \
-#chmod +x /app/start.sh
-#EXPOSE 8080
-# 建议使用绝对路径
-#CMD ["/bin/sh", "/app/start.sh"]
-
 FROM alpine:latest
-RUN apk add --no-cache wget tar curl acme.sh
+
+RUN apk add --no-cache wget tar curl openssl
+
 WORKDIR /app
 
 # 下载 sing-box
@@ -34,45 +9,50 @@ RUN wget -q https://github.com/SagerNet/sing-box/releases/download/v1.10.1/sing-
     tar -zxf sing-box-1.10.1-linux-amd64.tar.gz && \
     mv sing-box-1.10.1-linux-amd64/sing-box . && \
     rm -rf sing-box-1.10.1-linux-amd64*
+
+# 复制配置模板
 COPY config.json.tmpl .
-# 创建启动脚本（支持 TLS 证书申请和更新）
-RUN printf '#!/bin/sh\n\
+
+# 生成私钥和公钥的脚本
+RUN echo '#!/bin/sh\n\
+# 生成 Reality 密钥对\n\
+PRIVATE_KEY=$(./sing-box generate reality-keypair | grep "PrivateKey" | cut -d: -f2 | xargs)\n\
+PUBLIC_KEY=$(./sing-box generate reality-keypair | grep "PublicKey" | cut -d: -f2 | xargs)\n\
+SHORT_ID=$(openssl rand -hex 8)\n\
 UUID=$(cat /proc/sys/kernel/random/uuid)\n\
-DOMAIN="$DOMAIN"\n\
-EMAIL="$EMAIL"\n\
 \n\
-if [ -z "$DOMAIN" ] || [ -z "$EMAIL" ]; then\n\
-  echo "Error: Please set DOMAIN and EMAIL environment variables"\n\
-  echo "Usage: docker run -e DOMAIN=example.com -e EMAIL=your@email.com ..."\n\
-  exit 1\n\
-fi\n\
-\n\
-# 准备证书目录\n\
-mkdir -p /certs\n\
-\n\
-# 申请或更新证书\n\
-echo "Applying for certificate for $DOMAIN..."\n\
-acme.sh --issue -d "$DOMAIN" --standalone --email "$EMAIL" --keylength ec-256 --force\n\
-\n\
-# 安装证书\n\
-acme.sh --install-cert -d "$DOMAIN" \
-  --key-file /certs/private.key \
-  --fullchain-file /certs/cert.crt\n\
+DOMAIN="${DOMAIN:-auto}"\n\
 \n\
 # 生成配置文件\n\
-if [ "$TLS_ENABLED" = "true" ]; then\n\
-  sed "s/\${UUID}/$UUID/g; s/\${DOMAIN}/$DOMAIN/g; s/\${CERT_PATH}/\/certs\/cert.crt/g; s/\${KEY_PATH}/\/certs\/private.key/g" config.json.tmpl > config.json\n\
-  echo "TLS mode enabled for domain: $DOMAIN"\n\
+if [ "$DOMAIN" != "auto" ]; then\n\
+  # 使用自定义域名\n\
+  sed "s/\${UUID}/$UUID/g; s/\${PRIVATE_KEY}/$PRIVATE_KEY/g; s/\${SHORT_ID}/$SHORT_ID/g; s/\${DOMAIN}/$DOMAIN/g" config.json.tmpl > config.json\n\
+  echo "================================"\n\
+  echo "Reality Configuration (Custom Domain):"\n\
+  echo "Domain: $DOMAIN"\n\
+  echo "UUID: $UUID"\n\
+  echo "Short ID: $SHORT_ID"\n\
+  echo "Public Key: $PUBLIC_KEY"\n\
+  echo "Client Link:"\n\
+  echo "vless://$UUID@$DOMAIN:443?security=reality&pbk=$PUBLIC_KEY&sid=$SHORT_ID&type=tcp&sni=$DOMAIN#Reality_TCP"\n\
+  echo "================================"\n\
 else\n\
-  # 降级到 HTTP 模式\n\
-  sed "s/\${UUID}/$UUID/g; s/\${DOMAIN}//g; s/\"server_name\": \"\${DOMAIN}\",//g; s/\"certificate_path\": \"\${CERT_PATH}\",//g; s/\"key_path\": \"\${KEY_PATH}\"/\"key_path\": \"\"/g" config.json.tmpl > config.json\n\
-  echo "HTTP mode enabled"\n\
+  # 使用服务器 IP\n\
+  SERVER_IP=$(curl -s ifconfig.me 2>/dev/null || echo "SERVER_IP")\n\
+  sed "s/\${UUID}/$UUID/g; s/\${PRIVATE_KEY}/$PRIVATE_KEY/g; s/\${SHORT_ID}/$SHORT_ID/g; s/\${DOMAIN}/$SERVER_IP/g" config.json.tmpl > config.json\n\
+  echo "================================"\n\
+  echo "Reality Configuration (IP Mode):"\n\
+  echo "Server IP: $SERVER_IP"\n\
+  echo "UUID: $UUID"\n\
+  echo "Short ID: $SHORT_ID"\n\
+  echo "Public Key: $PUBLIC_KEY"\n\
+  echo "Client Link:"\n\
+  echo "vless://$UUID@$SERVER_IP:443?security=reality&pbk=$PUBLIC_KEY&sid=$SHORT_ID&type=tcp&sni=$DOMAIN#Reality_TCP"\n\
+  echo "================================"\n\
 fi\n\
 \n\
-echo "Generated UUID: $UUID"\n\
-echo "Domain: $DOMAIN"\n\
 exec ./sing-box run -c config.json' > start.sh && \
     chmod +x start.sh
 
-EXPOSE 443 8080
+EXPOSE 443
 CMD ["./start.sh"]
