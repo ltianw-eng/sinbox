@@ -1,5 +1,5 @@
 FROM alpine:latest
-RUN apk add --no-cache wget tar gettext curl
+RUN apk add --no-cache wget tar
 WORKDIR /app
 # 下载 sing-box 官方程序
 RUN wget https://github.com/SagerNet/sing-box/releases/download/v1.10.1/sing-box-1.10.1-linux-amd64.tar.gz && \
@@ -9,7 +9,7 @@ RUN wget https://github.com/SagerNet/sing-box/releases/download/v1.10.1/sing-box
 
 COPY config.json.tmpl .
 
-RUN echo '#!/bin/sh\n\
+RUN printf '#!/bin/sh\n\
 UUID=$(cat /proc/sys/kernel/random/uuid)\n\
 sed "s/\${UUID}/$UUID/g" config.json.tmpl > config.json\n\
 echo "================================"\n\
@@ -24,4 +24,5 @@ exec ./sing-box run -c config.json' > /app/start.sh && \
 chmod +x /app/start.sh
 
 EXPOSE 8080
-CMD ["/app/start.sh"]
+# 建议使用绝对路径
+CMD ["/bin/sh", "/app/start.sh"]
