@@ -11,8 +11,7 @@ COPY config.json.tmpl .
 
 RUN echo '#!/bin/sh\n\
 UUID=$(cat /proc/sys/kernel/random/uuid)\n\
-PORT=8080\n\
-sed "s/\${UUID}/$UUID/g; s/\${PORT}/$PORT/g" config.json.tmpl > config.json\n\
+sed "s/\${UUID}/$UUID/g" config.json.tmpl > config.json\n\
 echo "================================"\n\
 echo "VLESS Configuration:"\n\
 echo "Server: $(curl -s ifconfig.me 2>/dev/null || echo \"YOUR_SERVER_IP\")"\n\
