@@ -26,7 +26,10 @@ echo "✅ Ready: Reality on 1443"\n\
 echo "UUID: $UUID"\n\
 echo "Public Key: $PUBLIC_KEY"\n\
 echo "Short ID: $SHORT_ID"\n\
-echo "SNI: sinbox-production.up.railway.app"\n\
+
+SERVER_NAME=$(grep -o '"server_name": "[^"]*"' config.json | cut -d'"' -f4)\n\
+echo "SNI: $SERVER_NAME"\n\
+
 echo "Client: vless://$UUID@yamanote.proxy.rlwyt.net:25247?security=reality&pbk=$PUBLIC_KEY&sid=$SHORT_ID&sni=sinbox-production.up.railway.app&type=tcp"\n\
 echo "================================"\n\
 \n\
