@@ -26,10 +26,8 @@
           "private_key": "${PRIVATE_KEY}",
           "short_id": ["${SHORT_ID}"]
         }
-      },
-      "transport": {
-        "type": "tcp"
       }
+      // ⚠️ 关键：不要写 "transport" 字段！默认即为 raw TCP
     }
   ],
   "outbounds": [
