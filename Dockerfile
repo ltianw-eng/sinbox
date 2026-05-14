@@ -14,7 +14,7 @@ RUN wget -q https://github.com/SagerNet/sing-box/releases/download/v1.10.1/sing-
 COPY config.json.tmpl .
 
 # 生成私钥和公钥的脚本
-RUN echo '#!/bin/sh\n\
+RUN printf '#!/bin/sh\n\
 # 生成 Reality 密钥对\n\
 PRIVATE_KEY=$(./sing-box generate reality-keypair | grep "PrivateKey" | cut -d: -f2 | xargs)\n\
 PUBLIC_KEY=$(./sing-box generate reality-keypair | grep "PublicKey" | cut -d: -f2 | xargs)\n\
