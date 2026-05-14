@@ -2,11 +2,46 @@
   "log": { "level": "info" },
   "inbounds": [{
     "type": "vless",
-    "tag": "vless-in",
-    "listen": "::",
-    "listen_port": 8080,
-    "users": [{ "uuid": "${UUID}" }],
-    "transport": { "type": "ws", "path": "/chat" }
-  }],
-  "outbounds": [{ "type": "direct", "tag": "direct" }]
+      "tag": "vless-tls",
+      "listen": "::",
+      "listen_port": 443,
+      "users": [
+        {
+          "uuid": "${UUID}",
+          "flow": ""
+        }
+      ],
+      "tls": {
+        "server_name": "${DOMAIN}",
+        "certificate_path": "${CERT_PATH}",
+        "key_path": "${KEY_PATH}"
+      },
+      "transport": {
+        "type": "ws",
+        "path": "/chat"
+      }
+    },
+    {
+      "type": "vless",
+      "tag": "vless-http",
+      "listen": "::",
+      "listen_port": 8080,
+      "users": [
+        {
+          "uuid": "${UUID}",
+          "flow": ""
+        }
+      ],
+      "transport": {
+        "type": "ws",
+        "path": "/chat"
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct",
+      "tag": "direct"
+    }
+  ]
 }
