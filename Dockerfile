@@ -34,7 +34,7 @@ if [ "$DOMAIN" != "auto" ]; then\n\
   echo "Short ID: $SHORT_ID"\n\
   echo "Public Key: $PUBLIC_KEY"\n\
   echo "Client Link:"\n\
-  echo "vless://$UUID@$DOMAIN:443?security=reality&pbk=$PUBLIC_KEY&sid=$SHORT_ID&type=tcp&sni=$DOMAIN#Reality_TCP"\n\
+  echo "vless://$UUID@$DOMAIN:1443?security=reality&pbk=$PUBLIC_KEY&sid=$SHORT_ID&type=tcp&sni=$DOMAIN#Reality_TCP"\n\
   echo "================================"\n\
 else\n\
   # 使用服务器 IP\n\
@@ -47,12 +47,12 @@ else\n\
   echo "Short ID: $SHORT_ID"\n\
   echo "Public Key: $PUBLIC_KEY"\n\
   echo "Client Link:"\n\
-  echo "vless://$UUID@$SERVER_IP:443?security=reality&pbk=$PUBLIC_KEY&sid=$SHORT_ID&type=tcp&sni=$DOMAIN#Reality_TCP"\n\
+  echo "vless://$UUID@$SERVER_IP:1443?security=reality&pbk=$PUBLIC_KEY&sid=$SHORT_ID&type=tcp&sni=$DOMAIN#Reality_TCP"\n\
   echo "================================"\n\
 fi\n\
 \n\
 exec ./sing-box run -c config.json' > start.sh && \
     chmod +x start.sh
 
-EXPOSE 443
+EXPOSE 1443
 CMD ["./start.sh"]
