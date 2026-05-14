@@ -4,10 +4,11 @@ RUN apk add --no-cache wget tar curl openssl
 
 WORKDIR /app
 
-# 下载 sing-box
+# 下载并解压 sing-box
 RUN wget -q https://github.com/SagerNet/sing-box/releases/download/v1.10.1/sing-box-1.10.1-linux-amd64.tar.gz && \
     tar -zxf sing-box-1.10.1-linux-amd64.tar.gz && \
-    mv sing-box-1.10.1-linux-amd64/sing-box . && rm -rf *
+    mv sing-box-1.10.1-linux-amd64/sing-box . && \
+    rm -rf sing-box-1.10.1-linux-amd64*   # ← 只删解压目录，不删当前目录文件！
 
 COPY config.json.tmpl .
 
@@ -18,7 +19,6 @@ PRIVATE_KEY=$(echo "$KEYPAIR" | grep PrivateKey | cut -d: -f2 | xargs)\n\
 PUBLIC_KEY=$(echo "$KEYPAIR" | grep PublicKey | cut -d: -f2 | xargs)\n\
 SHORT_ID=$(openssl rand -hex 8)\n\
 \n\
-# 直接替换模板（硬编码 domain = sinbox-production.up.railway.app）\n\
 sed "s/\${UUID}/$UUID/g; s/\${PRIVATE_KEY}/$PRIVATE_KEY/g; s/\${SHORT_ID}/$SHORT_ID/g" config.json.tmpl > config.json\n\
 \n\
 echo "================================"\n\
