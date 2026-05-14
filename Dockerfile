@@ -7,5 +7,5 @@ RUN wget https://github.com/SagerNet/sing-box/releases/download/v1.10.1/sing-box
     mv sing-box-1.10.1-linux-amd64/sing-box . && \
     rm -rf sing-box-1.10.1-linux-amd64*
 COPY config.json .
-EXPOSE 8080
+EXPOSE 1443
 CMD ["./sing-box", "run", "-c", "config.json"]
