@@ -1,12 +1,29 @@
 {
-  "log": { "level": "info" },
-  "inbounds": [{
-    "type": "vless",
-    "tag": "vless-in",
-    "listen": "::",
-    "listen_port": 8080,
-    "users": [{ "uuid": "ad103d9c-6ab3-41d2-887d-41c33850aebc" }],
-    "transport": { "type": "ws", "path": "/chat" }
-  }],
-  "outbounds": [{ "type": "direct", "tag": "direct" }]
+  "log": {
+    "level": "info"
+  },
+  "inbounds": [
+    {
+      "type": "http",
+      "listen": "0.0.0.0",
+      "listen_port": ${PORT},
+      "users": [
+        {
+          "username": "user",
+          "password": "${UUID}"
+        }
+      ],
+      "transport": {
+        "type": "ws",
+        "path": "/ws",
+        "max_early_data": 2048,
+        "early_data_header_name": "Sec-WebSocket-Protocol"
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "type": "direct"
+    }
+  ]
 }
