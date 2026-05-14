@@ -1,40 +1,34 @@
 {
-  "log": { "level": "info" },
-  "inbounds": [{
-    "type": "vless",
-      "tag": "vless-tls",
+  "log": {
+    "level": "info"
+  },
+  "inbounds": [
+    {
+      "type": "vless",
+      "tag": "vless-reality",
       "listen": "::",
       "listen_port": 443,
       "users": [
         {
           "uuid": "${UUID}",
-          "flow": ""
+          "flow": "xtls-rprx-vision"
         }
       ],
       "tls": {
+        "enabled": true,
         "server_name": "${DOMAIN}",
-        "certificate_path": "${CERT_PATH}",
-        "key_path": "${KEY_PATH}"
+        "reality": {
+          "enabled": true,
+          "handshake": {
+            "server": "${DOMAIN}",
+            "server_port": 443
+          },
+          "private_key": "${PRIVATE_KEY}",
+          "short_id": ["${SHORT_ID}"]
+        }
       },
       "transport": {
-        "type": "ws",
-        "path": "/chat"
-      }
-    },
-    {
-      "type": "vless",
-      "tag": "vless-http",
-      "listen": "::",
-      "listen_port": 8080,
-      "users": [
-        {
-          "uuid": "${UUID}",
-          "flow": ""
-        }
-      ],
-      "transport": {
-        "type": "ws",
-        "path": "/chat"
+        "type": "tcp"
       }
     }
   ],
